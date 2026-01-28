@@ -11,8 +11,8 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     define: {
       // Polyfill process.env.API_KEY for the GenAI SDK
-      // Prioritize GEMINI_API_KEY as provided by the user
-      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY || env.VITE_GOOGLE_AI_KEY || '')
+      // Check env (loaded from .env) AND process.env (system vars in Vercel)
+      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY || process.env.GEMINI_API_KEY || env.VITE_GOOGLE_AI_KEY || '')
     }
   }
 })
