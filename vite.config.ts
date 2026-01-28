@@ -11,7 +11,8 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     define: {
       // Polyfill process.env.API_KEY for the GenAI SDK
-      'process.env.API_KEY': JSON.stringify(env.VITE_GOOGLE_AI_KEY || '')
+      // Prioritize GEMINI_API_KEY as provided by the user
+      'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY || env.VITE_GOOGLE_AI_KEY || '')
     }
   }
 })
