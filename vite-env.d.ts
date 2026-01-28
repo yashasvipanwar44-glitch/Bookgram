@@ -38,11 +38,3 @@ interface ImportMetaEnv {
 interface ImportMeta {
   readonly env: ImportMetaEnv;
 }
-
-// Define process.env for usage in the app (e.g. Google GenAI SDK)
-declare var process: {
-  env: {
-    API_KEY: string;
-    [key: string]: any;
-  }
-};

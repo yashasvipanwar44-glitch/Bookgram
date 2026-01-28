@@ -1,6 +1,6 @@
 import React from 'react';
 import { View, User } from '../types';
-import { Moon, Sun, ShoppingCart, LogIn, LogOut, Plus } from 'lucide-react';
+import { Moon, Sun, ShoppingCart, LogIn, LogOut, Plus, BookOpen } from 'lucide-react';
 
 interface NavbarProps {
   currentView: View;
@@ -44,8 +44,8 @@ const Navbar: React.FC<NavbarProps> = ({
           className="flex items-center gap-2 cursor-pointer group"
           onClick={() => setCurrentView(View.STORE)}
         >
-          <div className="w-10 h-10 bg-primaryGreen rounded-lg flex items-center justify-center text-white font-bold text-xl group-hover:scale-105 transition-transform">
-            B
+          <div className="w-10 h-10 flex items-center justify-center group-hover:scale-105 transition-transform bg-primaryGreen text-white rounded-xl shadow-md">
+             <BookOpen size={24} />
           </div>
           <span className="text-2xl font-serif font-bold text-gray-800 dark:text-cream tracking-tight hidden sm:block">
             Bookgram

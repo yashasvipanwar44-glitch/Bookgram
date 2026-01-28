@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { Book, CartItem, User, Review } from '../types';
-import { ChevronLeft, ChevronRight, ShoppingBag, Clock, IndianRupee, Star, User as UserIcon, Send, PenLine, Pencil } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ShoppingBag, Clock, IndianRupee, Star, User as UserIcon, Send, PenLine, Pencil, ShieldCheck, Check } from 'lucide-react';
 
 interface BookDetailsProps {
   book: Book;
@@ -12,7 +12,7 @@ interface BookDetailsProps {
 }
 
 const BookDetails: React.FC<BookDetailsProps> = ({ book, user, onBack, onAddToCart, onAddReview, onEditReview }) => {
-  const [rentWeeks, setRentWeeks] = useState(1);
+  const [rentMonths, setRentMonths] = useState(1);
   const [mode, setMode] = useState<'BUY' | 'RENT'>('RENT');
   const reviewFormRef = useRef<HTMLDivElement>(null);
 
@@ -28,6 +28,7 @@ const BookDetails: React.FC<BookDetailsProps> = ({ book, user, onBack, onAddToCa
   const [hoverRating, setHoverRating] = useState(0);
   const [reviewComment, setReviewComment] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [showSuccessMessage, setShowSuccessMessage] = useState(false);
 
   const isOutOfStock = book.quantity === 0;
   const discount = book.markedPrice > book.priceBuy 
@@ -46,6 +47,7 @@ const BookDetails: React.FC<BookDetailsProps> = ({ book, user, onBack, onAddToCa
 
   const handleEditClick = () => {
     setIsEditing(true);
+    setShowSuccessMessage(false);
   };
 
   const nextImage = (e: React.MouseEvent) => {
@@ -65,7 +67,9 @@ const BookDetails: React.FC<BookDetailsProps> = ({ book, user, onBack, onAddToCa
     }
 
     const unitPrice = mode === 'BUY' ? book.priceBuy : book.priceRent;
-    const price = mode === 'BUY' ? unitPrice : unitPrice * rentWeeks;
+    const price = mode === 'BUY' 
+        ? unitPrice 
+        : (unitPrice * rentMonths) + (book.securityDeposit || 0);
     
     const cartItem: CartItem = {
       id: Date.now().toString(),
@@ -74,7 +78,8 @@ const BookDetails: React.FC<BookDetailsProps> = ({ book, user, onBack, onAddToCa
       author: book.author,
       imageUrl: displayImages[0], // Use the first image for cart
       type: mode,
-      rentWeeks: mode === 'RENT' ? rentWeeks : undefined,
+      rentMonths: mode === 'RENT' ? rentMonths : undefined,
+      securityDeposit: mode === 'RENT' ? book.securityDeposit : undefined,
       price: price,
       quantity: 1,
       unitPrice: unitPrice
@@ -106,13 +111,18 @@ const BookDetails: React.FC<BookDetailsProps> = ({ book, user, onBack, onAddToCa
 
     if (existingReview) {
       onEditReview(book.id, reviewData);
-      alert("Review updated successfully!");
     } else {
       onAddReview(book.id, reviewData);
     }
     
     // Reset edit state but keep review populated for viewing
     setIsEditing(false);
+    setShowSuccessMessage(true);
+    
+    // Hide success message automatically after 5 seconds to allow editing again
+    setTimeout(() => {
+        setShowSuccessMessage(false);
+    }, 5000);
   };
 
   return (
@@ -229,34 +239,49 @@ const BookDetails: React.FC<BookDetailsProps> = ({ book, user, onBack, onAddToCa
                  onClick={() => setMode('RENT')}
                  className={`flex-1 relative z-10 py-3 text-center font-bold text-lg transition-colors ${mode === 'RENT' ? 'text-white' : 'text-gray-500 dark:text-gray-400'}`}
                >
-                 Rent <span className="text-sm opacity-80">(₹{book.priceRent}/wk)</span>
+                 Rent <span className="text-sm opacity-80">(₹{book.priceRent}/mo)</span>
                </button>
             </div>
 
             {/* Rent Logic */}
             {mode === 'RENT' && (
-              <div className="animate-in fade-in slide-in-from-top-2 duration-300">
-                 <div className="flex items-center justify-between mb-4">
+              <div className="animate-in fade-in slide-in-from-top-2 duration-300 space-y-4">
+                 <div className="flex items-center justify-between">
                     <label className="font-medium text-gray-700 dark:text-gray-300 flex items-center gap-2 text-lg">
                       <Clock size={20} className="text-primaryGreen" /> Rent Duration
                     </label>
                     <div className="flex items-center gap-4 bg-white dark:bg-bgDarker rounded-xl p-1 border border-gray-200 dark:border-white/10">
                        <button 
-                         onClick={() => setRentWeeks(Math.max(1, rentWeeks - 1))}
+                         onClick={() => setRentMonths(Math.max(1, rentMonths - 1))}
                          className="w-10 h-10 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 flex items-center justify-center font-bold text-xl"
                        >-</button>
-                       <span className="font-bold w-16 text-center text-lg">{rentWeeks} wk</span>
+                       <span className="font-bold w-16 text-center text-lg">{rentMonths} mo</span>
                        <button 
-                         onClick={() => setRentWeeks(rentWeeks + 1)}
+                         onClick={() => setRentMonths(rentMonths + 1)}
                          className="w-10 h-10 rounded-lg hover:bg-gray-100 dark:hover:bg-white/10 flex items-center justify-center font-bold text-xl"
                        >+</button>
                     </div>
                  </div>
-                 <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-white/10">
-                    <span className="text-gray-500 font-medium">Total Rent Price</span>
-                    <span className="text-3xl font-serif font-bold text-primaryGreen flex items-center">
-                      <IndianRupee size={24} strokeWidth={3} />{book.priceRent * rentWeeks}
-                    </span>
+
+                 {/* Price Breakdown for Rent */}
+                 <div className="pt-4 border-t border-gray-200 dark:border-white/10 space-y-2">
+                    <div className="flex justify-between text-gray-600 dark:text-gray-400">
+                        <span>Rent (₹{book.priceRent} × {rentMonths} mo)</span>
+                        <span>₹{book.priceRent * rentMonths}</span>
+                    </div>
+                    {book.securityDeposit > 0 && (
+                        <div className="flex justify-between text-primaryGreen font-medium">
+                            <span className="flex items-center gap-1"><ShieldCheck size={16} /> Security Deposit (Refundable)</span>
+                            <span>₹{book.securityDeposit}</span>
+                        </div>
+                    )}
+                    <div className="flex items-center justify-between pt-2 border-t border-dashed border-gray-200 dark:border-white/10">
+                        <span className="text-gray-800 dark:text-cream font-bold">Total Payable</span>
+                        <span className="text-3xl font-serif font-bold text-primaryGreen flex items-center">
+                          <IndianRupee size={24} strokeWidth={3} />
+                          {(book.priceRent * rentMonths) + (book.securityDeposit || 0)}
+                        </span>
+                    </div>
                  </div>
               </div>
             )}
@@ -297,7 +322,7 @@ const BookDetails: React.FC<BookDetailsProps> = ({ book, user, onBack, onAddToCa
               ) : (
                 <>
                   <ShoppingBag size={24} />
-                  Add to Cart • ₹{mode === 'BUY' ? book.priceBuy : book.priceRent * rentWeeks}
+                  Add to Cart • ₹{mode === 'BUY' ? book.priceBuy : (book.priceRent * rentMonths) + (book.securityDeposit || 0)}
                 </>
               )}
             </button>
@@ -354,8 +379,21 @@ const BookDetails: React.FC<BookDetailsProps> = ({ book, user, onBack, onAddToCa
             )}
          </div>
 
+         {/* Success Message */}
+         {showSuccessMessage && (
+            <div className="bg-green-100 dark:bg-green-900/20 p-6 rounded-3xl border border-green-200 dark:border-green-900/50 text-center animate-in fade-in mb-6">
+               <div className="w-16 h-16 bg-green-500 rounded-full flex items-center justify-center mx-auto mb-4 text-white shadow-lg shadow-green-500/30">
+                 <Check size={32} />
+               </div>
+               <h3 className="text-2xl font-bold text-green-800 dark:text-green-100 mb-2">Thank You!</h3>
+               <p className="text-green-700 dark:text-green-200">
+                 Your review has been submitted successfully. We appreciate your feedback!
+               </p>
+            </div>
+         )}
+
          {/* Write/Edit Review Form */}
-         {(user && (!existingReview || isEditing)) && (
+         {(user && (!existingReview || isEditing)) && !showSuccessMessage && (
             <div ref={reviewFormRef} className="bg-gray-50 dark:bg-bgDarker p-6 rounded-3xl border border-gray-100 dark:border-white/5 transition-all animate-in fade-in">
               <h3 className="text-xl font-bold mb-4 text-gray-800 dark:text-cream flex items-center gap-2">
                 {isEditing ? (
@@ -409,7 +447,7 @@ const BookDetails: React.FC<BookDetailsProps> = ({ book, user, onBack, onAddToCa
                      )}
                      <button 
                         type="submit"
-                        className="px-6 py-3 bg-primaryGreen text-white rounded-xl font-bold hover:bg-opacity-90 transition-all flex items-center gap-2 shadow-lg shadow-primaryGreen/20"
+                        className="px-6 py-3 bg-primaryGreen text-white rounded-xl font-bold hover:bg-opacity-90 transition-all flex items-center gap-2 shadow-lg shadow-primaryGreen/20 cursor-pointer"
                       >
                         {isEditing ? (
                           <><PenLine size={18} /> Update Review</>
@@ -420,6 +458,19 @@ const BookDetails: React.FC<BookDetailsProps> = ({ book, user, onBack, onAddToCa
                   </div>
                 </div>
               </form>
+            </div>
+         )}
+         
+         {/* Message for user who already reviewed */}
+         {user && existingReview && !isEditing && !showSuccessMessage && (
+            <div className="bg-green-50 dark:bg-green-900/10 p-6 rounded-3xl border border-green-100 dark:border-green-900/30 text-center animate-in fade-in">
+               <p className="text-green-800 dark:text-green-200 font-medium mb-3">You have already reviewed this book.</p>
+               <button 
+                 onClick={() => setIsEditing(true)}
+                 className="text-primaryGreen font-bold hover:underline flex items-center justify-center gap-2 mx-auto"
+               >
+                 <Pencil size={16} /> Edit your review
+               </button>
             </div>
          )}
          

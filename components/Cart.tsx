@@ -1,17 +1,17 @@
 import React from 'react';
 import { CartItem } from '../types';
-import { Trash2, ArrowRight, ShoppingBag, Plus, Minus, Clock } from 'lucide-react';
+import { Trash2, ArrowRight, ShoppingBag, Plus, Minus, Clock, ShieldCheck } from 'lucide-react';
 
 interface CartProps {
   items: CartItem[];
   onRemove: (id: string) => void;
   onUpdateQuantity: (id: string, newQuantity: number) => void;
-  onUpdateRentWeeks: (id: string, newWeeks: number) => void;
+  onUpdateRentMonths: (id: string, newMonths: number) => void;
   onCheckout: () => void;
   onContinueShopping: () => void;
 }
 
-const Cart: React.FC<CartProps> = ({ items, onRemove, onUpdateQuantity, onUpdateRentWeeks, onCheckout, onContinueShopping }) => {
+const Cart: React.FC<CartProps> = ({ items, onRemove, onUpdateQuantity, onUpdateRentMonths, onCheckout, onContinueShopping }) => {
   const total = items.reduce((sum, item) => sum + item.price, 0);
 
   if (items.length === 0) {
@@ -60,23 +60,31 @@ const Cart: React.FC<CartProps> = ({ items, onRemove, onUpdateQuantity, onUpdate
                   </div>
                   <p className="text-sm text-gray-500 dark:text-gray-400 mb-2">{item.author}</p>
                   
-                  <div className="flex items-center gap-2 mb-4">
-                    <span className={`text-xs font-bold px-2 py-1 rounded-md ${item.type === 'BUY' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
-                      {item.type}
-                    </span>
-                    {item.type === 'RENT' && (
-                       <div className="flex items-center gap-1 bg-gray-100 dark:bg-white/10 px-2 py-0.5 rounded-lg border border-gray-200 dark:border-white/10">
-                         <Clock size={12} className="text-gray-500" />
-                         <button 
-                            onClick={() => onUpdateRentWeeks(item.id, (item.rentWeeks || 1) - 1)}
-                            className="w-5 h-5 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-white/20 rounded font-bold"
-                          >-</button>
-                          <span className="text-xs font-medium w-12 text-center">{item.rentWeeks} wks</span>
-                          <button 
-                             onClick={() => onUpdateRentWeeks(item.id, (item.rentWeeks || 1) + 1)}
-                             className="w-5 h-5 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-white/20 rounded font-bold"
-                          >+</button>
-                       </div>
+                  <div className="flex flex-col gap-2 mb-4">
+                    <div className="flex items-center gap-2">
+                        <span className={`text-xs font-bold px-2 py-1 rounded-md ${item.type === 'BUY' ? 'bg-blue-100 text-blue-700' : 'bg-orange-100 text-orange-700'}`}>
+                          {item.type}
+                        </span>
+                        {item.type === 'RENT' && (
+                           <div className="flex items-center gap-1 bg-gray-100 dark:bg-white/10 px-2 py-0.5 rounded-lg border border-gray-200 dark:border-white/10">
+                             <Clock size={12} className="text-gray-500" />
+                             <button 
+                                onClick={() => onUpdateRentMonths(item.id, (item.rentMonths || 1) - 1)}
+                                className="w-5 h-5 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-white/20 rounded font-bold"
+                              >-</button>
+                              <span className="text-xs font-medium w-12 text-center">{item.rentMonths} mo</span>
+                              <button 
+                                 onClick={() => onUpdateRentMonths(item.id, (item.rentMonths || 1) + 1)}
+                                 className="w-5 h-5 flex items-center justify-center hover:bg-gray-200 dark:hover:bg-white/20 rounded font-bold"
+                              >+</button>
+                           </div>
+                        )}
+                    </div>
+                    {item.type === 'RENT' && item.securityDeposit && item.securityDeposit > 0 && (
+                        <div className="flex items-center gap-1 text-xs text-primaryGreen font-medium">
+                            <ShieldCheck size={12} />
+                            Included Security Deposit: ₹{item.securityDeposit}
+                        </div>
                     )}
                   </div>
                 </div>
@@ -104,7 +112,10 @@ const Cart: React.FC<CartProps> = ({ items, onRemove, onUpdateQuantity, onUpdate
 
                    <div className="text-right">
                      <span className="block text-xs text-gray-400 mb-0.5">
-                       {item.type === 'RENT' ? `₹${item.unitPrice}/wk × ${item.rentWeeks}wks` : `₹${item.unitPrice}`} × {item.quantity}
+                       {item.type === 'RENT' 
+                         ? `(₹${item.unitPrice}/mo × ${item.rentMonths} + ₹${item.securityDeposit || 0})` 
+                         : `₹${item.unitPrice}`} 
+                        {' '}× {item.quantity}
                      </span>
                      <span className="block font-bold text-2xl text-primaryGreen font-serif">₹{item.price}</span>
                    </div>

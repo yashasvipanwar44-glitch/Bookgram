@@ -169,7 +169,7 @@ const BookStore: React.FC<BookStoreProps> = ({ books, user, onBookClick, onToggl
                     <div className="flex flex-col xl:flex-row items-start xl:items-center justify-between p-2 md:p-3 bg-gray-50 dark:bg-white/5 rounded-lg md:rounded-xl gap-1">
                       <div className="flex flex-col">
                           <span className="text-[10px] md:text-xs text-gray-500 dark:text-gray-400">Rent</span>
-                          <span className="font-bold text-xs md:text-base text-primaryGreen">₹{book.priceRent}<span className="hidden md:inline text-[10px] md:text-xs text-gray-400 font-normal">/wk</span></span>
+                          <span className="font-bold text-xs md:text-base text-primaryGreen">₹{book.priceRent}<span className="hidden md:inline text-[10px] md:text-xs text-gray-400 font-normal">/month</span></span>
                       </div>
                       <div className="hidden xl:block w-px h-8 bg-gray-200 dark:bg-white/10"></div>
                       <div className="flex flex-col xl:items-end">

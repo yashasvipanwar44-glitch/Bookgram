@@ -28,7 +28,8 @@ export interface Book {
   category: string;
   priceBuy: number; // Selling Price
   markedPrice: number; // MRP
-  priceRent: number;
+  priceRent: number; // Monthly Rent
+  securityDeposit: number; // Refundable Deposit
   quantity: number; // Stock
   imageUrl: string;
   images?: string[];
@@ -55,7 +56,8 @@ export interface CartItem {
   author: string;
   imageUrl: string;
   type: 'BUY' | 'RENT';
-  rentWeeks?: number;
+  rentMonths?: number;
+  securityDeposit?: number;
   price: number;
   quantity: number;
   unitPrice: number;

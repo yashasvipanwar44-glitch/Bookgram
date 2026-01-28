@@ -1,10 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Book } from '../types';
-import { X, Upload, IndianRupee, Loader2, Tag, Layers } from 'lucide-react';
+import { X, Upload, IndianRupee, Loader2, Tag, Layers, ShieldCheck } from 'lucide-react';
 
 interface AddBookModalProps {
   onClose: () => void;
-  onAddBook: (book: Book) => void;
+  onAddBook: (book: Book) => Promise<void>;
 }
 
 const AddBookModal: React.FC<AddBookModalProps> = ({ onClose, onAddBook }) => {
@@ -15,12 +15,14 @@ const AddBookModal: React.FC<AddBookModalProps> = ({ onClose, onAddBook }) => {
     category: 'Engineering',
     markedPrice: '', // MRP
     priceBuy: '',    // Selling Price
-    priceRent: '',
+    priceRent: '',   // Monthly Rent
+    securityDeposit: '', // Refundable Deposit
     quantity: '1',   // Stock
   });
 
   const [previewImages, setPreviewImages] = useState<string[]>([]);
   const [isProcessing, setIsProcessing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [discountPercent, setDiscountPercent] = useState(0);
 
   // Calculate discount whenever prices change
@@ -69,8 +71,10 @@ const AddBookModal: React.FC<AddBookModalProps> = ({ onClose, onAddBook }) => {
     setPreviewImages(prev => prev.filter((_, i) => i !== index));
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSubmitting(true);
+    
     const newBook: Book = {
       id: Date.now().toString(),
       title: formData.title,
@@ -80,6 +84,7 @@ const AddBookModal: React.FC<AddBookModalProps> = ({ onClose, onAddBook }) => {
       markedPrice: Number(formData.markedPrice),
       priceBuy: Number(formData.priceBuy),
       priceRent: Number(formData.priceRent),
+      securityDeposit: Number(formData.securityDeposit),
       quantity: Number(formData.quantity),
       // Use the first uploaded image as main cover, or random fallback
       imageUrl: previewImages.length > 0 ? previewImages[0] : `https://picsum.photos/200/300?random=${Date.now()}`,
@@ -87,7 +92,14 @@ const AddBookModal: React.FC<AddBookModalProps> = ({ onClose, onAddBook }) => {
       reviews: [],
       averageRating: 0,
     };
-    onAddBook(newBook);
+    
+    try {
+        await onAddBook(newBook);
+    } catch (error) {
+        console.error("Submission failed", error);
+    } finally {
+        setIsSubmitting(false);
+    }
   };
 
   return (
@@ -249,21 +261,38 @@ const AddBookModal: React.FC<AddBookModalProps> = ({ onClose, onAddBook }) => {
                 </div>
              )}
 
-             <div>
-                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rent Price (per week)</label>
-                <div className="relative">
-                  <IndianRupee size={16} className="absolute left-3 top-3.5 text-gray-400" />
-                  <input
-                    type="number"
-                    name="priceRent"
-                    required
-                    value={formData.priceRent}
-                    onChange={handleChange}
-                    className="w-full bg-white dark:bg-bgDarker text-gray-900 dark:text-cream pl-9 pr-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 focus:outline-none focus:border-primaryGreen transition-colors"
-                    placeholder="e.g. 50"
-                  />
+             <div className="grid grid-cols-2 gap-4">
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Rent (per month)</label>
+                    <div className="relative">
+                      <IndianRupee size={16} className="absolute left-3 top-3.5 text-gray-400" />
+                      <input
+                        type="number"
+                        name="priceRent"
+                        required
+                        value={formData.priceRent}
+                        onChange={handleChange}
+                        className="w-full bg-white dark:bg-bgDarker text-gray-900 dark:text-cream pl-9 pr-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 focus:outline-none focus:border-primaryGreen transition-colors"
+                        placeholder="e.g. 50"
+                      />
+                    </div>
                 </div>
-              </div>
+                <div>
+                    <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Security Deposit</label>
+                    <div className="relative">
+                      <ShieldCheck size={16} className="absolute left-3 top-3.5 text-gray-400" />
+                      <input
+                        type="number"
+                        name="securityDeposit"
+                        required
+                        value={formData.securityDeposit}
+                        onChange={handleChange}
+                        className="w-full bg-white dark:bg-bgDarker text-gray-900 dark:text-cream pl-9 pr-4 py-3 rounded-xl border border-gray-200 dark:border-white/10 focus:outline-none focus:border-primaryGreen transition-colors"
+                        placeholder="e.g. 200"
+                      />
+                    </div>
+                </div>
+             </div>
           </div>
 
           <div>
@@ -281,10 +310,10 @@ const AddBookModal: React.FC<AddBookModalProps> = ({ onClose, onAddBook }) => {
 
           <button
             type="submit"
-            disabled={isProcessing}
-            className="w-full bg-primaryGreen hover:bg-opacity-90 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-primaryGreen/20 transition-all transform active:scale-95 mt-4 disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isProcessing || isSubmitting}
+            className="w-full bg-primaryGreen hover:bg-opacity-90 text-white font-bold py-3.5 rounded-xl shadow-lg shadow-primaryGreen/20 transition-all transform active:scale-95 mt-4 disabled:opacity-50 disabled:cursor-not-allowed flex justify-center items-center gap-2"
           >
-            Post Book Now
+            {isSubmitting ? <Loader2 className="animate-spin" size={20} /> : 'Post Book Now'}
           </button>
         </form>
       </div>
