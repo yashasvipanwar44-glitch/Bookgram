@@ -77,7 +77,7 @@ const BookStore: React.FC<BookStoreProps> = ({ books, user, onBookClick, onToggl
              <h3 className="text-xl font-bold mb-2">No books found</h3>
              <p className="max-w-md text-center text-sm">
                 {searchQuery 
-                  ? `No books match the search "${searchQuery}".`
+                  ? `We couldn't find any books matching "${searchQuery}".`
                   : "Try adjusting your category filter or check back later."
                 }
              </p>

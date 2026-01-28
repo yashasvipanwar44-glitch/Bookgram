@@ -132,7 +132,7 @@ const Navbar: React.FC<NavbarProps> = ({
               title="Sign Out"
             >
                 <LogOut size={18} />
-                <span>Logout</span>
+                <span>Log Out</span>
              </button>
           )}
         </div>
