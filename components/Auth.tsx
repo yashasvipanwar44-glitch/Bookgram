@@ -1,12 +1,10 @@
 import React, { useState } from 'react';
 import { User, AuthMode } from '../types';
-import { X, Mail, Lock, User as UserIcon, Loader2 } from 'lucide-react';
+import { X, Mail, Lock, User as UserIcon, Loader2, AlertCircle } from 'lucide-react';
 import { supabase } from '../lib/supabase';
 
 interface AuthModalProps {
   onClose: () => void;
-  // We don't strictly need onLogin prop here as App.tsx listens to onAuthStateChange,
-  // but keeping it for compatibility if needed.
   onLogin?: (user: User) => void;
 }
 
@@ -43,8 +41,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
           if (data.session) {
              onClose();
           } else {
+             // If user created but no session, they probably need to verify email
              alert("Sign up successful! Please check your email to verify your account before logging in.");
-             onClose();
+             setMode(AuthMode.LOGIN); // Switch to login view
           }
         }
       } else {
@@ -54,7 +53,15 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
           password,
         });
 
-        if (error) throw error;
+        if (error) {
+           if (error.message.includes('Email not confirmed')) {
+             throw new Error("Your email address has not been verified yet. Please check your inbox.");
+           } else if (error.message.includes('Invalid login credentials')) {
+             throw new Error("Invalid email or password. Please try again.");
+           } else {
+             throw error;
+           }
+        }
         
         // App.tsx's onAuthStateChange listener will handle the state update
         onClose();
@@ -85,8 +92,9 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
         </p>
 
         {error && (
-          <div className="mb-4 p-3 bg-red-100 border border-red-200 text-red-700 rounded-xl text-sm">
-            {error}
+          <div className="mb-6 p-4 bg-red-50 dark:bg-red-900/10 border border-red-200 dark:border-red-800 text-red-600 dark:text-red-300 rounded-xl text-sm flex items-start gap-3">
+            <AlertCircle className="flex-shrink-0 mt-0.5" size={18} />
+            <span>{error}</span>
           </div>
         )}
 

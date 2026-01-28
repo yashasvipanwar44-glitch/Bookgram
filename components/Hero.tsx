@@ -1,7 +1,11 @@
 import React from 'react';
 import { Search } from 'lucide-react';
 
-const Hero: React.FC = () => {
+interface HeroProps {
+  onSearch: (query: string) => void;
+}
+
+const Hero: React.FC<HeroProps> = ({ onSearch }) => {
   return (
     <div className="relative w-full rounded-[2.5rem] overflow-hidden mb-12 bg-bgDark border border-primaryGreen/30 shadow-2xl">
       {/* Background Gradient/Effects */}
@@ -22,6 +26,7 @@ const Hero: React.FC = () => {
             type="text"
             placeholder="Find your next read..."
             className="flex-grow bg-transparent border-none outline-none text-cream placeholder-gray-500 px-6 text-lg"
+            onChange={(e) => onSearch(e.target.value)}
           />
           <button className="bg-lightGreen hover:bg-primaryGreen text-bgDarker font-semibold px-8 py-3 rounded-full transition-colors flex items-center gap-2">
             Search

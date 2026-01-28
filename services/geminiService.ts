@@ -1,27 +1,19 @@
 import { GoogleGenAI } from "@google/genai";
 
-// NOTE: In a real app, this should be in an environment variable. 
-// However, per instructions, we assume process.env.API_KEY is available.
-// Since we are running in a frontend environment for this generation, 
-// we will rely on the user understanding to put the key in .env or similar.
-// For this demo code to work without an env setup in the preview, we handle the case gracefully.
-
-const apiKey = process.env.API_KEY || ''; 
-
-let ai: GoogleGenAI | null = null;
-
-if (apiKey) {
-    ai = new GoogleGenAI({ apiKey });
-}
-
 export const getBookRecommendation = async (query: string): Promise<string> => {
-  if (!ai) {
-    return "I'm sorry, but the AI service is not configured with an API Key currently.";
+  // Check if the API key is configured
+  if (!process.env.API_KEY) {
+    console.warn("Gemini API Key is missing. Ensure VITE_GOOGLE_AI_KEY is set in your environment variables.");
+    return "I'm sorry, but the AI service is not configured with an API Key currently. Please contact the administrator to add the 'VITE_GOOGLE_AI_KEY' to the deployment settings.";
   }
 
   try {
+    // Initialize the client inside the function to ensure the key is present
+    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    
+    // Using 'gemini-3-flash-preview' for basic text tasks as per guidelines
     const response = await ai.models.generateContent({
-      model: 'gemini-3-flash-preview', // Using the recommended fast model
+      model: 'gemini-3-flash-preview', 
       contents: `You are an expert librarian and book curator for a platform called Bookgram. 
       The user is asking: "${query}". 
       Recommend 2-3 specific books that would answer their request. 
