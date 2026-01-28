@@ -14,12 +14,14 @@ export const getBookRecommendation = async (query: string): Promise<string> => {
     // Using 'gemini-3-flash-preview' for basic text tasks as per guidelines
     const response = await ai.models.generateContent({
       model: 'gemini-3-flash-preview', 
-      contents: `You are an expert librarian and book curator for a platform called Bookgram. 
-      The user is asking: "${query}". 
+      contents: `The user is asking: "${query}". 
       Recommend 2-3 specific books that would answer their request. 
-      For each book, give the Title, Author, and a 1-sentence reason why. 
-      Keep the tone helpful, encouraging, and intellectual. 
-      Format the response in Markdown with bold titles.`,
+      For each book, give the Title, Author, and a 1-sentence reason why.`,
+      config: {
+        systemInstruction: `You are an expert librarian and book curator for a platform called Bookgram.
+        Keep the tone helpful, encouraging, and intellectual.
+        Format the response in Markdown with bold titles.`,
+      },
     });
 
     return response.text || "I couldn't find any recommendations right now.";
