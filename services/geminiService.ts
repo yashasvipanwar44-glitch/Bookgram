@@ -2,14 +2,14 @@ import { GoogleGenAI } from "@google/genai";
 
 export const getBookRecommendation = async (query: string): Promise<string> => {
   // Check if the API key is configured
-  if (!process.env.API_KEY) {
-    console.warn("Gemini API Key is missing. Ensure VITE_GOOGLE_AI_KEY is set in your environment variables.");
-    return "I'm sorry, but the AI service is not configured with an API Key currently. Please contact the administrator to add the 'VITE_GOOGLE_AI_KEY' to the deployment settings.";
+  if (!process.env.GEMINI_API_KEY) {
+    console.warn("Gemini API Key is missing. Ensure GEMINI_API_KEY is set in your environment variables.");
+    return "I'm sorry, but the AI service is not configured with an API Key currently. Please contact the administrator.";
   }
 
   try {
     // Initialize the client inside the function to ensure the key is present
-    const ai = new GoogleGenAI({ apiKey: process.env.API_KEY });
+    const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
     
     // Using 'gemini-3-flash-preview' for basic text tasks as per guidelines
     const response = await ai.models.generateContent({

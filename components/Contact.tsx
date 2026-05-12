@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Mail, Phone, User, Clock, MessageSquare, Send, CheckCircle, Loader2 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 
 const Contact: React.FC = () => {
   const [formData, setFormData] = useState({
@@ -22,23 +21,13 @@ const Contact: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      const { error } = await supabase.from('inquiries').insert([
-        {
-          full_name: formData.fullName,
-          email: formData.email,
-          mobile: formData.mobile,
-          query: formData.query,
-          time_slot: formData.timeSlot
-        }
-      ]);
-
-      if (error) throw error;
-      
-      setIsSubmitted(true);
+      setTimeout(() => {
+        setIsSubmitted(true);
+        setIsSubmitting(false);
+      }, 1000);
     } catch (err) {
       console.error("Error submitting inquiry:", err);
       alert("Failed to send message. Please try again.");
-    } finally {
       setIsSubmitting(false);
     }
   };

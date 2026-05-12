@@ -1,14 +1,13 @@
 import React, { useState } from 'react';
 import { User, AuthMode } from '../types';
 import { X, Mail, Lock, User as UserIcon, Loader2, AlertCircle } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 
 interface AuthModalProps {
   onClose: () => void;
-  onLogin?: (user: User) => void;
+  onLogin: (user: User) => void;
 }
 
-const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
+const AuthModal: React.FC<AuthModalProps> = ({ onClose, onLogin }) => {
   const [mode, setMode] = useState<AuthMode>(AuthMode.LOGIN);
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
@@ -22,54 +21,24 @@ const AuthModal: React.FC<AuthModalProps> = ({ onClose }) => {
     setError(null);
 
     try {
-      if (mode === AuthMode.SIGNUP) {
-        // --- SIGN UP ---
-        const { data, error } = await supabase.auth.signUp({
-          email,
-          password,
-          options: {
-            data: {
-              full_name: name,
-            },
-          },
-        });
-
-        if (error) throw error;
-
-        if (data.user) {
-          // Check if session exists (auto-confirmed) or if email verification is required
-          if (data.session) {
-             onClose();
-          } else {
-             // If user created but no session, they probably need to verify email
-             alert("Sign up successful! Please check your email to verify your account before logging in.");
-             setMode(AuthMode.LOGIN); // Switch to login view
-          }
-        }
-      } else {
-        // --- LOG IN ---
-        const { data, error } = await supabase.auth.signInWithPassword({
-          email,
-          password,
-        });
-
-        if (error) {
-           if (error.message.includes('Email not confirmed')) {
-             throw new Error("Your email address has not been verified yet. Please check your inbox.");
-           } else if (error.message.includes('Invalid login credentials')) {
-             throw new Error("Invalid email or password. Please try again.");
-           } else {
-             throw error;
-           }
-        }
-        
-        // App.tsx's onAuthStateChange listener will handle the state update
+      // Mock login / signup
+      setTimeout(() => {
+        const mockUser: User = {
+          id: Date.now().toString(),
+          name: mode === AuthMode.SIGNUP ? name : email.split('@')[0],
+          email: email,
+          rentedBooks: [],
+          boughtBooks: [],
+          favoriteBooks: [],
+          listedBooks: []
+        };
+        onLogin(mockUser);
         onClose();
-      }
+        setLoading(false);
+      }, 800);
     } catch (err: any) {
       console.error("Auth error:", err);
       setError(err.message || "Authentication failed. Please check your credentials.");
-    } finally {
       setLoading(false);
     }
   };

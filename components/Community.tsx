@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, ForumPost, ForumReply } from '../types';
 import { MessageSquare, Heart, Share2, Send, Plus, Search, User as UserIcon, X, Copy, Facebook, Twitter, MessageCircle, Loader2 } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 
 interface CommunityProps {
   user: User | null;
@@ -38,45 +37,7 @@ const Community: React.FC<CommunityProps> = ({ user }) => {
 
   // Fetch Posts from Supabase
   const fetchPosts = async () => {
-    try {
-      const { data: postsData, error: postsError } = await supabase
-        .from('forum_posts')
-        .select(`
-          *,
-          forum_replies (*)
-        `)
-        .order('created_at', { ascending: false });
-
-      if (postsError) throw postsError;
-
-      if (postsData) {
-        const mappedPosts: ForumPost[] = postsData.map((p: any) => ({
-          id: p.id,
-          authorId: p.author_id,
-          authorName: p.author_name || 'Anonymous',
-          title: p.title,
-          content: p.content,
-          category: p.category,
-          likedBy: p.liked_by || [],
-          tags: p.tags || [],
-          timestamp: new Date(p.created_at).toLocaleDateString(),
-          replies: (p.forum_replies || []).map((r: any) => ({
-             id: r.id,
-             postId: r.post_id,
-             authorId: r.author_id,
-             authorName: r.author_name || 'Anonymous',
-             content: r.content,
-             likedBy: r.liked_by || [],
-             timestamp: new Date(r.created_at).toLocaleDateString()
-          }))
-        }));
-        setPosts(mappedPosts);
-      }
-    } catch (error) {
-      console.error("Error fetching community posts:", error);
-    } finally {
-      setLoading(false);
-    }
+    setLoading(false);
   };
 
   useEffect(() => {
@@ -105,12 +66,6 @@ const Community: React.FC<CommunityProps> = ({ user }) => {
     setPosts(posts.map(post => 
       post.id === postId ? { ...post, likedBy: newLikedBy } : post
     ));
-
-    // DB Update
-    await supabase
-      .from('forum_posts')
-      .update({ liked_by: newLikedBy })
-      .eq('id', postId);
   };
 
   const handleLikeReply = async (postId: string, replyId: string) => {
@@ -139,12 +94,6 @@ const Community: React.FC<CommunityProps> = ({ user }) => {
       }
       return p;
     }));
-
-    // DB Update
-    await supabase
-      .from('forum_replies')
-      .update({ liked_by: newLikedBy })
-      .eq('id', replyId);
   };
 
   const executeShare = (platform: string) => {
@@ -184,23 +133,8 @@ const Community: React.FC<CommunityProps> = ({ user }) => {
     const text = replyText[postId];
     if (!text?.trim()) return;
 
-    // Insert into DB
-    const { data, error } = await supabase.from('forum_replies').insert([{
-      post_id: postId,
-      author_id: user.id,
-      author_name: user.name,
-      content: text,
-      liked_by: []
-    }]).select().single();
-
-    if (error) {
-      console.error("Error submitting reply:", error);
-      return;
-    }
-
-    if (data) {
        const newReply: ForumReply = {
-         id: data.id,
+         id: Date.now().toString(),
          postId: postId,
          authorId: user.id,
          authorName: user.name,
@@ -213,7 +147,6 @@ const Community: React.FC<CommunityProps> = ({ user }) => {
          post.id === postId ? { ...post, replies: [...post.replies, newReply] } : post
        ));
        setReplyText({ ...replyText, [postId]: '' });
-    }
   };
 
   const handleSubmitQuestion = async (e: React.FormEvent) => {
@@ -225,21 +158,9 @@ const Community: React.FC<CommunityProps> = ({ user }) => {
     setIsPosting(true);
 
     try {
-      const { data, error } = await supabase.from('forum_posts').insert([{
-        author_id: user.id,
-        author_name: user.name,
-        title: newPostTitle,
-        content: newPostContent,
-        category: newPostCategory,
-        liked_by: [],
-        tags: [] 
-      }]).select().single();
-
-      if (error) throw error;
-
-      if (data) {
+      setTimeout(() => {
         const newPost: ForumPost = {
-          id: data.id,
+          id: Date.now().toString(),
           authorId: user.id,
           authorName: user.name,
           title: newPostTitle,
@@ -255,11 +176,11 @@ const Community: React.FC<CommunityProps> = ({ user }) => {
         setNewPostTitle('');
         setNewPostContent('');
         setSelectedCategory('All');
-      }
+        setIsPosting(false);
+      }, 500);
     } catch (err) {
       console.error("Error creating post:", err);
       alert("Failed to post question.");
-    } finally {
       setIsPosting(false);
     }
   };

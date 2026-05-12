@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { User, Book, Order } from '../types';
 import { BookOpen, ShoppingBag, Heart, Bookmark, Camera, LogOut, X, Package, ChevronDown, ChevronUp } from 'lucide-react';
-import { supabase } from '../lib/supabase';
 
 interface ProfileProps {
   user: User;
@@ -30,30 +29,9 @@ const Profile: React.FC<ProfileProps> = ({ user, books, onLogout, onUpdateUser, 
   const [loadingOrders, setLoadingOrders] = useState(false);
   const [expandedOrderId, setExpandedOrderId] = useState<string | null>(null);
 
+  // Mocking orders for frontend-only
   useEffect(() => {
-    const fetchOrders = async () => {
-        setLoadingOrders(true);
-        const { data, error } = await supabase
-            .from('orders')
-            .select('*')
-            .eq('user_id', user.id)
-            .order('created_at', { ascending: false });
-        
-        if (data) {
-            const mappedOrders: Order[] = data.map((o: any) => ({
-                id: o.id.toString(),
-                items: o.items,
-                totalAmount: o.total_amount,
-                paymentMethod: o.payment_method,
-                address: o.address,
-                status: o.status,
-                createdAt: new Date(o.created_at).toLocaleDateString()
-            }));
-            setOrders(mappedOrders);
-        }
-        setLoadingOrders(false);
-    };
-    fetchOrders();
+    setLoadingOrders(false);
   }, [user.id]);
 
   const handleAvatarSelect = (avatarUrl: string) => {
