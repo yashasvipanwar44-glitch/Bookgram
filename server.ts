@@ -24,7 +24,14 @@ async function startServer() {
     }
 
     try {
-      const ai = new GoogleGenAI({ apiKey: process.env.GEMINI_API_KEY });
+      const ai = new GoogleGenAI({ 
+        apiKey: process.env.GEMINI_API_KEY,
+        httpOptions: {
+          headers: {
+            'User-Agent': 'aistudio-build',
+          }
+        }
+      });
       const response = await ai.models.generateContent({
         model: 'gemini-3-flash-preview', 
         contents: `The user is asking: "${query}". \nRecommend 2-3 specific books that would answer their request. \nFor each book, give the Title, Author, and a 1-sentence reason why.`,
@@ -36,7 +43,8 @@ async function startServer() {
       res.json({ text: response.text || "I couldn't find any recommendations right now." });
     } catch (error) {
       console.error("Gemini API Error:", error);
-      res.status(500).json({ error: "I'm having trouble connecting to the library archives (AI Error). Please try again later." });
+      const errorMessage = error instanceof Error ? error.message : String(error);
+      res.status(500).json({ error: `I'm having trouble connecting to the library archives (AI Error). Details: ${errorMessage}. Please try again later.` });
     }
   });
 
