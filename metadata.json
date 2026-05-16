@@ -2,5 +2,5 @@
   "name": "Bookgram",
   "description": "A modern exchange for students to buy, rent, and share knowledge sustainably. Features an AI book curator.",
   "requestFramePermissions": [],
-  "majorCapabilities": []
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
